@@ -89,7 +89,7 @@ add_flag_append(CMAKE_Pascal_FLAGS "-l -B -MDelphi -Scgi")
 add_flag_append(CMAKE_Pascal_FLAGS_DEBUG
                 "-O1 -g -gl -l -vewnhiq -dDEVELOPMENT")
 add_flag_append(CMAKE_Pascal_FLAGS_RELEASE
-                "-O3 -CX -OoREGVAR -Xs -XX -vewnhiq -dTESTING -static")
+                "-O3 -CX -OoREGVAR -Xs -XX -vewnhiq -dTESTING")
 
 # Hide fgl inlining warnings
 if(${CMAKE_Pascal_COMPILER_VERSION} VERSION_GREATER 3.1)

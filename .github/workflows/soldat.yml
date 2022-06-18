@@ -61,6 +61,9 @@ jobs:
           path: C:\vcpkg\installed
           key: vcpkg-cache
 
+      - name: Configure VS Toolchain
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Download freepascal
         if: steps.fpc.outputs.cache-hit != 'true'
         run: |
