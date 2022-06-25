@@ -119,6 +119,7 @@ var
   r_renderui: TBooleanCvar;
   r_zoom: TSingleCvar;
   r_msaa: TIntegerCVar;
+  r_vsync: TBooleanCvar;
 
   ui_playerindicator: TBooleanCvar;
   ui_minimap_transparency: TIntegerCvar;
@@ -723,6 +724,11 @@ begin
 
   SDL_Init(SDL_INIT_VIDEO);
   SDL_GetCurrentDisplayMode(0, @currentDisplay);
+
+  if (r_vsync.Value) then
+  begin
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, '1');
+  end;
 
   if (ScreenWidth = 0) or (ScreenHeight = 0) then
   begin
