@@ -124,6 +124,11 @@ jobs:
       - name: Package soldat
         run: |
           cd build
+          mkdir soldat/bin
+          mv soldat/play-regular.ttf soldat/bin
+          mv soldat/soldat soldat/bin
+          mv soldat/soldat.smod soldat/bin
+          mv soldat/soldatserver soldat/bin
           mkdir soldat/lib
           cp /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib soldat/lib
           cp /usr/local/opt/freetype/lib/libfreetype.6.dylib soldat/lib
