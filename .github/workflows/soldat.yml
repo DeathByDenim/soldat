@@ -124,6 +124,7 @@ jobs:
       - name: Package soldat
         run: |
           cd build
+          mv Frameworks soldat
           mkdir soldat/bin
           mv soldat/play-regular.ttf soldat/bin
           mv soldat/soldat soldat/bin
