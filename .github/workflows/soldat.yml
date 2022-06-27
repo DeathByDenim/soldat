@@ -100,7 +100,7 @@ jobs:
           path: build/bin/
 
   macos:
-    runs-on: macos-latest
+    runs-on: macos-10.15
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
