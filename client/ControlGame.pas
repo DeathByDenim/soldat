@@ -306,7 +306,7 @@ begin
   if KeyMods = KM_NONE then case KeyCode of
     SDL_SCANCODE_ESCAPE: begin
       if not ShouldRenderFrames then
-        ShutDown;
+        GameLoopRun := False;
     end;
     SDL_SCANCODE_PAGEDOWN: begin
       if FragsMenuShow then
@@ -402,6 +402,7 @@ begin
               choose(StrToInt(RMenuState[1]) - 1, ['U', 'M', 'D'])
             ]);
 
+          ChatText := '*' + RMenuState[0] + RMenuState[1] + ChatText;
           ClientSendStringMessage(ChatText, MSGTYPE_RADIO);
           ChatText := '';
           // RadioCooldown := 3;
