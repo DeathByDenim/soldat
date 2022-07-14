@@ -4,7 +4,7 @@ unit uPSCompiler;
 
 interface
 
-// @SoldatPatch
+// @OpenSoldatPatch
 {$HINTS OFF}
 {$WARN 4056 OFF}
 {$WARN 4082 OFF}
@@ -1225,7 +1225,7 @@ type
 
     property AttributesCloseTokenID: TPSPasToken read FAttributesCloseTokenID write FAttributesCloseTokenID;
 
-    // @SoldatPatch
+    // @OpenSoldatPatch
     {$PUSH}
     {$WARNINGS OFF}
     property UnitName: tbtString read FUnitName;
@@ -7174,7 +7174,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     begin
       FType := GetTypeNo(BlockInfo, p);
       if FType = nil then exit;
-      // @SoldatPatch
+      // @OpenSoldatPatch
       if (FType.BaseType <> btInterface) and (Ftype.BaseType <> BtVariant) and (FType.BaseType <> btNotificationVariant) then Exit;
 
       CheckArrayProperty:=(FParser.CurrTokenID=CSTI_OpenBlock) and
@@ -13080,7 +13080,10 @@ end;
 {$IFNDEF PS_NOINTERFACES}
 const
   IUnknown_Guid: TGuid = (D1: 0; d2: 0; d3: 0; d4: ($c0,00,00,00,00,00,00,$46));
+  // @SoldatPatch
+  {$IFNDEF PS_NOIDISPATCH}
   IDispatch_Guid: Tguid = (D1: $20400; D2: $0; D3: $0; D4:($C0, $0, $0, $0, $0, $0, $0, $46));
+  {$ENDIF}
 {$ENDIF}
 
 procedure TPSPascalCompiler.DefineStandardProcedures;
@@ -13156,7 +13159,7 @@ begin
       OrgName:='x';
       Mode:=pmInOut;
     end;
-    // @SoldatPatch
+    // @OpenSoldatPatch
     with AddParam do
     begin
       OrgName:='y';
@@ -13169,7 +13172,7 @@ begin
       OrgName:='x';
       Mode:=pmInOut;
     end;
-    // @SoldatPatch
+    // @OpenSoldatPatch
     with AddParam do
     begin
       OrgName:='y';

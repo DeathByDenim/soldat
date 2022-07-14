@@ -8,7 +8,7 @@ implementation
 
 uses
   // system and delphi units
-  SysUtils, Classes, strutils, dateutils,
+  SysUtils, Classes, dateutils,
 
   // helper units
   Vector, Util, Version,
@@ -416,7 +416,7 @@ begin
   end;
 
   LoadConfig(Name);
-  MainConsole.Console('Config reloaded ' + CurrentConf, CLIENT_MESSAGE_COLOR, Sender);
+  MainConsole.Console('Config reloaded ' + Name, CLIENT_MESSAGE_COLOR, Sender);
   StartServer;
 end;
 

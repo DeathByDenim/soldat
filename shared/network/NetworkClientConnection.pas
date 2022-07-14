@@ -12,7 +12,7 @@ uses
   // anti-cheat units
   {$IFDEF ENABLE_FAE}FaeClient,{$ENDIF}
 
-  // soldat units
+  // opensoldat units
   LogFile, Steam, Net, Sprites, Weapons, Constants, GameStrings,
   Cvar, PhysFS;
 
@@ -48,7 +48,7 @@ begin
   RequestMsg := PMsg_RequestGame(SendBuffer);
 
   RequestMsg.Header.ID := MsgID_RequestGame;
-  RequestMsg.Version := SOLDAT_VERSION;
+  RequestMsg.Version := OPENSOLDAT_VERSION;
 
   RequestMsg.HaveAntiCheat := ACTYPE_NONE;
 
@@ -477,14 +477,14 @@ begin
 
   case UnAcceptedMsg.State of
     WRONG_VERSION:
-      RenderGameInfo(_('Wrong game versions. Your version:') + ' ' + SOLDAT_VERSION +
+      RenderGameInfo(_('Wrong game versions. Your version:') + ' ' + OPENSOLDAT_VERSION +
         ' ' + _('Server Version:') + ' ' + UnAcceptedMsg.Version);
 
     WRONG_PASSWORD:
       RenderGameInfo(_('Wrong server password'));
 
     BANNED_IP:
-      RenderGameInfo(_('You have been banned on this server. Reason:') + ' ' + Text);
+      RenderGameInfo(_('You have been banned on this server. Reason:') + ' ' + UnicodeString(Text));
 
     SERVER_FULL:
       RenderGameInfo(_('Server is full'));
@@ -499,7 +499,7 @@ begin
       RenderGameInfo(_('This server accepts only Steam players.'));
 
     ANTICHEAT_REJECTED:
-      RenderGameInfo(_('Rejected by Anti-Cheat:') + ' ' + Text);
+      RenderGameInfo(_('Rejected by Anti-Cheat:') + ' ' + UnicodeString(Text));
   end;
 
   ReceivedUnAccepted := True;

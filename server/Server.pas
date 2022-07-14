@@ -1,6 +1,6 @@
 {*******************************************************}
 {                                                       }
-{       Main Unit for SOLDAT                            }
+{       Main Unit for OPENSOLDAT                        }
 {                                                       }
 {       Copyright (c) 2002 Michal Marcinkowski          }
 {                                                       }
@@ -38,7 +38,7 @@ uses
 
   FileServer, LobbyClient,
 
-  // soldat units
+  // opensoldat units
   Steam, Net, NetworkUtils,
   NetworkServerSprite, NetworkServerConnection, NetworkServerGame,
   ServerCommands, PhysFS, Console, ServerHelper,
@@ -279,8 +279,6 @@ var
 
   HTFTime: Integer = HTF_SEC_POINT;
 
-  CurrentConf: string = 'soldat.ini';
-
   WMName, WMVersion: string;
   LastWepMod: string;
 
@@ -378,7 +376,7 @@ end;
 
 procedure GetCollectionDetails(Callback: PSteamUGCQueryCompleted_t);
 var
-  CollectionItems: array of PublishedFileId_t;
+  CollectionItems: array of PublishedFileId_t = Nil;
   CollectionDetails: SteamUGCDetails_t;
   ItemState: uint32;
   i, j: Integer;
@@ -433,7 +431,6 @@ end;
 function GetWorkshopItemDir(ItemID: PublishedFileId_t): AnsiString;
 var
   FileSizeOnDisk: uint64 = 0;
-  DirSizeOnDisk: uint32 = 0;
   Path: array[0..PATH_MAX] of Char;
   TimeStamp: Cardinal = 0;
 begin
@@ -517,26 +514,25 @@ end;
 procedure ActivateServer;
 var
   i, j: Integer;
-  s: String;
 begin
   MainThreadID := GetThreadID;
 
   WriteLn('');
-  WriteLn('             -= Soldat Dedicated Server ' + SOLDAT_VERSION + ' - ' +
-    DEDVERSION + ' (build ' + SOLDAT_VERSION_LONG + ') =-');
+  WriteLn('             -= OpenSoldat Dedicated Server ' + OPENSOLDAT_VERSION + ' - ' +
+    DEDVERSION + ' (build ' + OPENSOLDAT_VERSION_LONG + ') =-');
   WriteLn('');
   WriteLn('----------------------------------------------------------------');
-  WriteLn('         Soldat Dedicated Server initializing...');
+  WriteLn('         OpenSoldat Dedicated Server initializing...');
   WriteLn('----------------------------------------------------------------');
   WriteLn('');
   WriteLn('   Need help running your server?');
-  WriteLn('   Discord: https://discord.soldat.pl');
+  WriteLn('   Discord: https://discord.gg/a8BeCkue');
   WriteLn('');
   WriteLn('   ---> https://forums.soldat.pl/');
   WriteLn('');
   WriteLn('   Additional parameters:');
-  WriteLn('   ./soldatserver -net_port PORT -sv_maxplayers MAXPLAYERS -sv_password PASSWORD');
-  WriteLn('   Example: ./soldatserver -net_port 23073 -sv_maxplayers 16 -sv_password "my pass"');
+  WriteLn('   ./opensoldatserver -net_port PORT -sv_maxplayers MAXPLAYERS -sv_password PASSWORD');
+  WriteLn('   Example: ./opensoldatserver -net_port 23073 -sv_maxplayers 16 -sv_password "my pass"');
   WriteLn('');
   WriteLn('');
 
@@ -617,7 +613,6 @@ begin
 
   // Create the basic folder structure
   CreateDirIfMissing(UserDirectory + '/configs');
-  CreateDirIfMissing(UserDirectory + '/configs/bots');
   CreateDirIfMissing(UserDirectory + '/demos');
   CreateDirIfMissing(UserDirectory + '/logs');
   CreateDirIfMissing(UserDirectory + '/logs/kills');
@@ -637,8 +632,16 @@ begin
   PHYSFS_CopyFileFromArchive('scripts/README.txt', UserDirectory + '/scripts/README.txt');
   {$ENDIF}
 
-  for s in PHYSFS_GetEnumeratedFiles('configs/bots') do
-    PHYSFS_CopyFileFromArchive('configs/bots/' + s, UserDirectory + '/configs/bots/' + s);
+  // Copy default bots if configs/bots directory is missing.
+  // We don't want to copy default bots on every launch; this allows
+  // server owners to delete some bots without the risk of having them
+  // recreated on next launch.
+  if not DirectoryExists(UserDirectory + '/configs/bots') then
+    if not CreateDir(UserDirectory + '/configs/bots') then
+      WriteLn('Could not create bots directory.')
+    else
+      if not PHYSFS_CopyFilesFromArchiveDirectory('configs/bots', UserDirectory + '/configs/bots') then
+        WriteLn('Could not copy bots from mod archive.');
 
   LoadConfig('server.cfg');
 
@@ -661,7 +664,7 @@ begin
       net_port.Value, // The port that clients will connect to for gameplay.
       net_port.Value + 20, // The port that will manage server browser related duties and info pings from clients.
       eServerModeAuthenticationAndSecure, // Sets the authentication method of the server.
-      PChar(SOLDAT_VERSION)
+      PChar(OPENSOLDAT_VERSION)
     );
 
   SteamAPI_ManualDispatch_Init();
@@ -675,6 +678,7 @@ begin
   begin
     SteamAPI.Utils.SetWarningMessageHook(@SteamWarning);
 
+    // TODO: opensoldat on steam
     SteamAPI.GameServer.SetModDir(PChar('Soldat'));
     SteamAPI.GameServer.SetProduct(PChar('Soldat'));
     SteamAPI.GameServer.SetGameDescription(PChar('Soldat'));
@@ -826,6 +830,9 @@ begin
   {$IFNDEF STEAM}
   GameNetworkingSockets_Kill();
   {$ENDIF}
+
+  AddLineToLogFile(GameLog, 'PhysFS closing.', ConsoleLogFileName);
+  PhysFS_deinit();
 
   try
     AddLineToLogFile(GameLog, '   End of Log.', ConsoleLogFileName);

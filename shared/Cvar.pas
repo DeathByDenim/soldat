@@ -19,20 +19,21 @@ const
 
 type
   {
-    CVAR_IMMUTABLE - can't be changed after set
-    CVAR_ARCHIVE   - save cvar to cfg file
-    CVAR_SPONLY    - only in singleplayer mode
-    CVAR_NOTIFY    - notify players after change
-    CVAR_MODIFIED  - this flag is set after cvar changed initial value
-    CVAR_CLIENT    - client cvar
-    CVAR_SERVER    - server cvar
-    CVAR_SYNC      - sync cvar to client cvar
-    CVAR_SCRIPT    - cvar set by script
-    CVAR_INITONLY  - cvar can be changed only at startup
+    CVAR_IMMUTABLE       - can't be changed after set
+    CVAR_ARCHIVE         - save cvar to cfg file
+    CVAR_SPONLY          - only in singleplayer mode
+    CVAR_NOTIFY          - notify players after change
+    CVAR_MODIFIED        - this flag is set after cvar changed initial value
+    CVAR_CLIENT          - client cvar
+    CVAR_SERVER          - server cvar
+    CVAR_SYNC            - sync cvar to client cvar
+    CVAR_SCRIPT          - cvar set by script
+    CVAR_INITONLY        - cvar can be changed only at startup
+    CVAR_SERVER_INITONLY - cvar can be changed only at startup by the server
   }
   TCvarFlag = (CVAR_IMMUTABLE, CVAR_ARCHIVE, CVAR_SPONLY, CVAR_NOTIFY,
       CVAR_MODIFIED, CVAR_CLIENT, CVAR_SERVER, CVAR_SYNC, CVAR_SCRIPT,
-      CVAR_INITONLY, CVAR_TOSYNC);
+      CVAR_INITONLY, CVAR_SERVER_INITONLY, CVAR_TOSYNC);
   TCvarFlags = set of TCvarFlag;
 
   TCvarBase = class
@@ -364,6 +365,15 @@ begin
     FErrorMessage := 'Can be set only at startup';
     Exit;
   end;
+
+  {$IFDEF SERVER}
+  if (CVAR_SERVER_INITONLY in FFlags) and CvarsInitialized then
+  begin
+    Result := False;
+    FErrorMessage := 'Can be set only by server at startup';
+    Exit;
+  end;
+  {$ENDIF}
 
   if (Value >= FMinValue) and (Value <= FMaxValue) then
   begin
@@ -887,9 +897,9 @@ begin
   sv_maxping := TIntegerCvar.Add('sv_maxping', 'The maximum ping a player can have to play in your server', 400, 400, [CVAR_SERVER], nil, 0, 9999);
   sv_votepercent := TIntegerCvar.Add('sv_votepercent', 'Percentage of players in favor of a map/kick vote to let it pass', 60, 60, [CVAR_SERVER], nil, 0, 200);
   sv_lockedmode := TBooleanCvar.Add('sv_lockedmode', 'When Locked Mode is enabled, admins will not be able to type /loadcon, /password or /maxplayers', False, False, [CVAR_SERVER], nil);
-  sv_pidfilename := TStringCvar.Add('sv_pidfilename', 'Sets the Process ID file name', 'soldatserver.pid', 'soldatserver.pid', [CVAR_SERVER], nil, 1, 256);
+  sv_pidfilename := TStringCvar.Add('sv_pidfilename', 'Sets the Process ID file name', 'opensoldatserver.pid', 'opensoldatserver.pid', [CVAR_SERVER], nil, 1, 256);
   sv_maplist := TStringCvar.Add('sv_maplist', 'Sets the name of maplist file', 'mapslist.txt', 'mapslist.txt', [CVAR_SERVER], nil, 1, 256); // TODO: OnChange load new maplist
-  sv_lobby := TBooleanCvar.Add('sv_lobby', 'Enables/Disables registering in lobby', True, True, [CVAR_SERVER], nil);
+  sv_lobby := TBooleanCvar.Add('sv_lobby', 'Enables/Disables registering in lobby', False, False, [CVAR_SERVER], nil);
   sv_lobbyurl := TStringCvar.Add('sv_lobbyurl', 'URL of the lobby server', 'http://api.soldat.pl:443', 'http://api.soldat.pl:443', [CVAR_SERVER], nil, 1, 256);
 
   sv_steamonly := TBooleanCvar.Add('sv_steamonly', 'Enables/Disables steam only mode', False, False, [CVAR_SERVER], nil);
@@ -964,7 +974,7 @@ begin
 
   // Sync vars (todo);
 
-  sv_gamemode := TIntegerCvar.Add('sv_gamemode', 'Sets the gamemode', 3, 3, [CVAR_SERVER, CVAR_SYNC], nil, 0, 6); // Restart server
+  sv_gamemode := TIntegerCvar.Add('sv_gamemode', 'Sets the gamemode', 3, 3, [CVAR_SERVER, CVAR_SYNC,CVAR_SERVER_INITONLY], nil, 0, 6); // Restart server
   sv_friendlyfire := TBooleanCvar.Add('sv_friendlyfire', 'Enables friendly fire', False, False, [CVAR_SERVER, CVAR_SYNC], nil);
   sv_timelimit := TIntegerCvar.Add('sv_timelimit', 'Time limit of map', 36000, 36000, [CVAR_SERVER, CVAR_SYNC], nil, 0, MaxInt);
   sv_maxgrenades := TIntegerCvar.Add('sv_maxgrenades', 'Sets the max number of grenades a player can carry', 2, 5, [CVAR_SERVER, CVAR_SYNC], nil, 0, 1);
@@ -973,18 +983,18 @@ begin
   sv_balanceteams := TBooleanCvar.Add('sv_balanceteams', 'Enables/disables team balancing', False, False, [CVAR_SERVER, CVAR_SYNC], nil);
   sv_guns_collide := TBooleanCvar.Add('sv_guns_collide', 'Enables colliding guns', False, False, [CVAR_SERVER, CVAR_SYNC], nil);
   sv_kits_collide := TBooleanCvar.Add('sv_kits_collide', 'Enables colliding kits', False, False, [CVAR_SERVER, CVAR_SYNC], nil);
-  sv_survivalmode := TBooleanCvar.Add('sv_survivalmode', 'Enables survival mode', False, False, [CVAR_SERVER, CVAR_SYNC], nil); // Restart server
+  sv_survivalmode := TBooleanCvar.Add('sv_survivalmode', 'Enables survival mode', False, False, [CVAR_SERVER, CVAR_SYNC,CVAR_SERVER_INITONLY], nil); // Restart server
   sv_survivalmode_antispy := TBooleanCvar.Add('sv_survivalmode_antispy', 'Enables anti spy chat in survival mode', False, False, [CVAR_SERVER, CVAR_SYNC], nil);
   sv_survivalmode_clearweapons := TBooleanCvar.Add('sv_survivalmode_clearweapons', 'Cluster Grenades bonus availability', False, False, [CVAR_SERVER, CVAR_SYNC], nil);
-  sv_realisticmode := TBooleanCvar.Add('sv_realisticmode', 'Enables realistic mode', False, False, [CVAR_SERVER, CVAR_SYNC], nil); // Restart server
-  sv_advancemode := TBooleanCvar.Add('sv_advancemode', 'Enables advance mode', False, False, [CVAR_SERVER, CVAR_SYNC], nil); // Restart server
+  sv_realisticmode := TBooleanCvar.Add('sv_realisticmode', 'Enables realistic mode', False, False, [CVAR_SERVER, CVAR_SYNC,CVAR_SERVER_INITONLY], nil); // Restart server
+  sv_advancemode := TBooleanCvar.Add('sv_advancemode', 'Enables advance mode', False, False, [CVAR_SERVER, CVAR_SYNC,CVAR_SERVER_INITONLY], nil); // Restart server
   sv_advancemode_amount := TIntegerCvar.Add('sv_advancemode_amount', 'Number of kills required in Advance Mode to gain a weapon.', 2, 2, [CVAR_SERVER, CVAR_SYNC], nil, 1, 9999);
   sv_minimap := TBooleanCvar.Add('sv_minimap', 'Enables/disables minimap', False, False, [CVAR_SERVER, CVAR_SYNC], nil);
   sv_advancedspectator := TBooleanCvar.Add('sv_advancedspectator', 'Enables/disables advanced spectator mode', True, True, [CVAR_SERVER, CVAR_SYNC], nil);
   sv_radio := TBooleanCvar.Add('sv_radio', 'Enables/disables radio chat', False, False, [CVAR_SERVER, CVAR_SYNC], nil);
   sv_info := TStringCvar.Add('sv_info', 'A website or e-mail address, or any other short text describing your server', '', '', [CVAR_SERVER, CVAR_SYNC], nil, 0, 60);
   sv_gravity := TSingleCvar.Add('sv_gravity', 'Gravity', 0.06, 0.06, [CVAR_SERVER, CVAR_SYNC], @sv_gravityChange, MinSingle, MaxSingle);
-  sv_hostname := TStringCvar.Add('sv_hostname', 'Name of the server', 'Soldat Server', 'Soldat Server', [CVAR_SERVER, CVAR_SYNC], nil, 0, 24);
+  sv_hostname := TStringCvar.Add('sv_hostname', 'Name of the server', 'OpenSoldat Server', 'OpenSoldat Server', [CVAR_SERVER, CVAR_SYNC], nil, 0, 24);
   sv_website := TStringCvar.Add('sv_website', 'Server website', '', '', [CVAR_SERVER, CVAR_SYNC], nil, 0, 255);
 
   sv_killlimit := TIntegerCvar.Add('sv_killlimit', 'Game point limit', 10, 10, [CVAR_SERVER, CVAR_SYNC], nil, 0, 9999);

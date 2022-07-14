@@ -1,6 +1,6 @@
 {*******************************************************}
 {                                                       }
-{       Sound Unit for SOLDAT                           }
+{       Sound Unit for OPENSOLDAT                       }
 {                                                       }
 {       Copyright (c) 2002-2003 Michal Marcinkowski     }
 {                                                       }
@@ -556,7 +556,7 @@ var
   State: Integer = 0;
   Chan: Integer;
   i: Byte;
-  BuffersProcessed: LongInt;
+  BuffersProcessed: LongInt = 0;
   VoiceBuffer: ALuint;
   BufferHolder: array[0..64] of ALuint;
 begin
