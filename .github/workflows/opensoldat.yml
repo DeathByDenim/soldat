@@ -149,26 +149,26 @@ jobs:
       - name: Package soldat
         run: |
           cd build
-          mv Frameworks soldat
-          mkdir soldat/bin
-          mv soldat/play-regular.ttf soldat/bin
-          mv soldat/opensoldat soldat/bin
-          mv soldat/soldat.smod soldat/bin
-          mv soldat/opensoldatserver soldat/bin
-          mkdir soldat/lib
-          cp /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib soldat/lib
-          cp /usr/local/opt/freetype/lib/libfreetype.6.dylib soldat/lib
-          cp /usr/local/opt/physfs/lib/libphysfs.1.dylib soldat/lib
-          cp /usr/local/opt/libpng/lib/libpng16.16.dylib soldat/lib
-          cp /usr/local/opt/protobuf/lib/libprotobuf.30.dylib soldat/lib
-          cp /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib soldat/lib
-          chmod -R u+w soldat/lib
-          install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib @executable_path/../lib/libSDL2-2.0.0.dylib ./soldat/bin/opensoldat
-          install_name_tool -change /usr/local/opt/freetype/lib/libfreetype.6.dylib @executable_path/../lib/libfreetype.6.dylib ./soldat/bin/opensoldat
-          install_name_tool -change /usr/local/opt/physfs/lib/libphysfs.1.dylib @executable_path/../lib/libphysfs.1.dylib ./soldat/bin/opensoldat
-          install_name_tool -change /usr/local/opt/libpng/lib/libpng16.16.dylib @executable_path/../lib/libpng16.16.dylib ./soldat/lib/libfreetype.6.dylib
-          install_name_tool -change /usr/local/opt/protobuf/lib/libprotobuf.30.dylib @executable_path/../lib/libprotobuf.30.dylib ./soldat/Frameworks/libGameNetworkingSockets.dylib
-          install_name_tool -change /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib @executable_path/../lib/libcrypto.1.1.dylib ./soldat/Frameworks/libGameNetworkingSockets.dylib
+          mv Frameworks opensoldat
+          mkdir opensoldat/bin
+          mv opensoldat/play-regular.ttf opensoldat/bin
+          mv opensoldat/opensoldat opensoldat/bin
+          mv opensoldat/soldat.smod opensoldat/bin
+          mv opensoldat/opensoldatserver opensoldat/bin
+          mkdir opensoldat/lib
+          cp /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib opensoldat/lib
+          cp /usr/local/opt/freetype/lib/libfreetype.6.dylib opensoldat/lib
+          cp /usr/local/opt/physfs/lib/libphysfs.1.dylib opensoldat/lib
+          cp /usr/local/opt/libpng/lib/libpng16.16.dylib opensoldat/lib
+          cp /usr/local/opt/protobuf/lib/libprotobuf.30.dylib opensoldat/lib
+          cp /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib opensoldat/lib
+          chmod -R u+w opensoldat/lib
+          install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib @executable_path/../lib/libSDL2-2.0.0.dylib ./opensoldat/bin/opensoldat
+          install_name_tool -change /usr/local/opt/freetype/lib/libfreetype.6.dylib @executable_path/../lib/libfreetype.6.dylib ./opensoldat/bin/opensoldat
+          install_name_tool -change /usr/local/opt/physfs/lib/libphysfs.1.dylib @executable_path/../lib/libphysfs.1.dylib ./opensoldat/bin/opensoldat
+          install_name_tool -change /usr/local/opt/libpng/lib/libpng16.16.dylib @executable_path/../lib/libpng16.16.dylib ./opensoldat/lib/libfreetype.6.dylib
+          install_name_tool -change /usr/local/opt/protobuf/lib/libprotobuf.30.dylib @executable_path/../lib/libprotobuf.30.dylib ./opensoldat/Frameworks/libGameNetworkingSockets.dylib
+          install_name_tool -change /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib @executable_path/../lib/libcrypto.1.1.dylib ./opensoldat/Frameworks/libGameNetworkingSockets.dylib
 
       - uses: actions/upload-artifact@v2
         with:
