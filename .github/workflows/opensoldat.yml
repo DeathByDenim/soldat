@@ -152,9 +152,9 @@ jobs:
           mv Frameworks soldat
           mkdir soldat/bin
           mv soldat/play-regular.ttf soldat/bin
-          mv soldat/soldat soldat/bin
+          mv soldat/opensoldat soldat/bin
           mv soldat/soldat.smod soldat/bin
-          mv soldat/soldatserver soldat/bin
+          mv soldat/opensoldatserver soldat/bin
           mkdir soldat/lib
           cp /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib soldat/lib
           cp /usr/local/opt/freetype/lib/libfreetype.6.dylib soldat/lib
@@ -162,9 +162,10 @@ jobs:
           cp /usr/local/opt/libpng/lib/libpng16.16.dylib soldat/lib
           cp /usr/local/opt/protobuf/lib/libprotobuf.30.dylib soldat/lib
           cp /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib soldat/lib
-          install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib @executable_path/../lib/libSDL2-2.0.0.dylib ./soldat/bin/soldat
-          install_name_tool -change /usr/local/opt/freetype/lib/libfreetype.6.dylib @executable_path/../lib/libfreetype.6.dylib ./soldat/bin/soldat
-          install_name_tool -change /usr/local/opt/physfs/lib/libphysfs.1.dylib @executable_path/../lib/libphysfs.1.dylib ./soldat/bin/soldat
+          chmod -R u+w soldat/lib
+          install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib @executable_path/../lib/libSDL2-2.0.0.dylib ./soldat/bin/opensoldat
+          install_name_tool -change /usr/local/opt/freetype/lib/libfreetype.6.dylib @executable_path/../lib/libfreetype.6.dylib ./soldat/bin/opensoldat
+          install_name_tool -change /usr/local/opt/physfs/lib/libphysfs.1.dylib @executable_path/../lib/libphysfs.1.dylib ./soldat/bin/opensoldat
           install_name_tool -change /usr/local/opt/libpng/lib/libpng16.16.dylib @executable_path/../lib/libpng16.16.dylib ./soldat/lib/libfreetype.6.dylib
           install_name_tool -change /usr/local/opt/protobuf/lib/libprotobuf.30.dylib @executable_path/../lib/libprotobuf.30.dylib ./soldat/Frameworks/libGameNetworkingSockets.dylib
           install_name_tool -change /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib @executable_path/../lib/libcrypto.1.1.dylib ./soldat/Frameworks/libGameNetworkingSockets.dylib
