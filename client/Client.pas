@@ -927,12 +927,12 @@ begin
 
   WriteLogFile(GameLog, ConsoleLogFileName);
 
-  ClientLoopRun := True;
-  while ClientLoopRun do
-  begin
-    ShowMainMenu();
+  //ClientLoopRun := True;
+  //while ClientLoopRun do
+  //begin
+    //ShowMainMenu();
     RunDeferredCommands();
-  end;
+  //end;
 end;
 
 procedure ShutDown;
