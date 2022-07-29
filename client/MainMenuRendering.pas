@@ -398,21 +398,21 @@ var
   InputParse: TStringList;
   StartTime, Frequency: Extended;
 begin
-  for i:=0 To DeferredCommands.Count-1 do
-  begin
-    InputParse := TStringList.Create;
-    InputParse.Delimiter := ' ';
-    InputParse.DelimitedText := TrimLeft(DeferredCommands[i]);
-    if (InputParse[0] = 'join') or (InputParse[0] = 'joinurl') or (InputParse[0] = 'connect') then
-    begin
-      Debug('Already joining game, skipping main menu');
-      InputParse.Free;
-      Exit
-    end;
+  //for i:=0 To DeferredCommands.Count-1 do
+  //begin
+    //InputParse := TStringList.Create;
+    //InputParse.Delimiter := ' ';
+    //InputParse.DelimitedText := TrimLeft(DeferredCommands[i]);
+    //if (InputParse[0] = 'join') or (InputParse[0] = 'joinurl') or (InputParse[0] = 'connect') then
+    //begin
+      //Debug('Already joining game, skipping main menu');
+      //InputParse.Free;
+      //Exit
+    //end;
 
-    InputParse.Free;
+    //InputParse.Free;
 
-  end;
+  //end;
   StartTime := SDL_GetPerformanceCounter;
   Frequency := SDL_GetPerformanceFrequency;
   while MainMenuLoopRun do
