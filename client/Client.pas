@@ -645,33 +645,6 @@ begin
   CreateDirIfMissing(UserDirectory + '/maps');
   CreateDirIfMissing(UserDirectory + '/mods');
 
-  Debug('[PhysFS] Initializing system');
-
-  if not PhysFS_Init(PChar(ParamStr(0))) then
-  begin
-    ShowMessage(_('Could not initialize PhysFS. Try to reinstall the game.'));
-    Exit;
-  end;
-
-  Debug('[PhysFS] Mounting game archive');
-
-  if fs_localmount.Value then
-  begin
-    if not PhysFS_mount(PChar(UserDirectory), '/', False) then
-    begin
-      ShowMessage(_('Could not load base game archive (game directory).'));
-      Exit;
-    end;
-  end else
-  begin
-    if not PhysFS_mount(PChar(BaseDirectory + '/soldat.smod'), '/', False) then
-    begin
-      ShowMessage(_('Could not load base game archive (soldat.smod). Try to reinstall the game.'));
-      Exit;
-    end;
-    GameModChecksum := Sha1File(BaseDirectory + '/soldat.smod', 4096);
-  end;
-
   PHYSFS_CopyFileFromArchive('configs/client.cfg', UserDirectory + '/configs/client.cfg');
   PHYSFS_CopyFileFromArchive('configs/taunts.cfg', UserDirectory + '/configs/taunts.cfg');
 
