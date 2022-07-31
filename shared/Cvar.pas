@@ -757,7 +757,6 @@ begin
   r_renderui := TBooleanCvar.Add('r_renderui', 'Enables interface rendering', True, True, [CVAR_CLIENT], nil);
   r_zoom := TSingleCvar.Add('r_zoom', 'Sets rendering zoom (only for spectators)', 0.0, 0.0, [CVAR_CLIENT], @r_zoomChange, -5.0, 5.0);
   r_msaa := TIntegerCVar.Add('r_msaa', 'Sets the number of samples for anti-aliasing (MSAA).', 0, 0, [CVAR_CLIENT, CVAR_INITONLY], nil, 0, 32);
-  r_vsync := TBooleanCvar.Add('r_vsync', '', False, False, [CVAR_CLIENT], nil);
 
   // Ui Cvars
   ui_playerindicator := TBooleanCvar.Add('ui_playerindicator', 'Enables player indicator', True, True, [CVAR_CLIENT], nil);

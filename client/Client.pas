@@ -43,7 +43,7 @@ uses
   // opensoldat units
   Sprites, Anims, PolyMap, Net, LogFile, Sound, GetText,
   NetworkClientConnection, GameMenus, Demo, Console,
-  Weapons, Constants, Game, GameRendering, MainMenuRendering;
+  Weapons, Constants, Game, GameRendering;
 
 procedure JoinServer;
 procedure StartGame;
@@ -65,7 +65,6 @@ type
 
 var
   GameLoopRun: Boolean;
-  ClientLoopRun: Boolean;
   ProgReady: Boolean;
 
   JoinPassword: String; // server password
@@ -122,7 +121,6 @@ var
   r_renderui: TBooleanCvar;
   r_zoom: TSingleCvar;
   r_msaa: TIntegerCVar;
-  r_vsync: TBooleanCvar;
 
   ui_playerindicator: TBooleanCvar;
   ui_minimap_transparency: TIntegerCvar;
@@ -737,11 +735,6 @@ begin
   SDL_Init(SDL_INIT_VIDEO);
   SDL_GetCurrentDisplayMode(0, @currentDisplay);
 
-  if (r_vsync.Value) then
-  begin
-    SDL_SetHint(SDL_HINT_RENDER_VSYNC, '1');
-  end;
-
   if (ScreenWidth = 0) or (ScreenHeight = 0) then
   begin
     ScreenWidth := currentDisplay.w;
@@ -942,13 +935,7 @@ begin
     cl_actionsnap.SetValue(False);
 
   WriteLogFile(GameLog, ConsoleLogFileName);
-
-  //ClientLoopRun := True;
-  //while ClientLoopRun do
-  //begin
-    //ShowMainMenu();
-    RunDeferredCommands();
-  //end;
+  RunDeferredCommands();
 end;
 
 procedure ShutDown;

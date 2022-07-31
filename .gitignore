@@ -45,3 +45,7 @@ Release
 *.swo
 *.swp
 *.swu
+
+# KDevelop
+.kdev4/
+soldat.kdev4

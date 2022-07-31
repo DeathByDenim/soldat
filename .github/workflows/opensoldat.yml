@@ -76,9 +76,6 @@ jobs:
           path: C:\vcpkg\installed
           key: vcpkg-cache
 
-      - name: Configure VS Toolchain
-        uses: ilammy/msvc-dev-cmd@v1
-
       - name: Download freepascal
         if: steps.fpc.outputs.cache-hit != 'true'
         run: |
@@ -116,7 +113,7 @@ jobs:
           path: build/opensoldat/
 
   macos:
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -137,9 +134,6 @@ jobs:
           make
           make install
 
-      - name: Package soldat
-        run: ./.github/workflows/macos-fix-libs.sh
-
       - uses: actions/upload-artifact@v2
         with:
           name: macos-build
@@ -159,8 +153,6 @@ jobs:
       - name: Zip build dirs back together
         run: |
           zip -r windows-build.zip windows-build
-          chmod +x macos-build/opensoldat
-          chmod +x macos-build/opensoldatserver
           zip -r macos-build.zip macos-build
           zip -r linux-server-build.zip linux-server-build
 

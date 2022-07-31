@@ -25,10 +25,6 @@ type
     Flags: TCommandFlags;
   end;
   TCommandTargets = array of byte;
-  TDeferredCommand = record
-    Command: String;
-    Values: TStringList;
-  end;
 
   function CommandAdd(CommandNameVar: AnsiString; CommandPtr: TCommandFunction; Description: AnsiString; Flags: TCommandFlags): PCommand;
   function CommandFind(Name: AnsiString): PCommand;
@@ -39,7 +35,7 @@ type
 
 var
   Commands: TFPHashList;
-  DeferredCommands: array of TDeferredCommand;
+  DeferredCommands: TStringList;
   DeferredInitialized: Boolean = False;
 
 implementation
@@ -359,28 +355,37 @@ begin
 end;
 {$POP}
 
-function ParseInput(Command: String; Values: TStringList; Sender: Byte = 0): Boolean; overload;
+function ParseInput(Input: String; Sender: Byte = 0): Boolean; overload;
 var
+  InputParse: TStringList;
+  InputArray: TStringArray;
   CommandPtr: PCommand;
-  CommandFunction: TCommandFunction;
   ACvar: TCvarBase;
+  CommandFunction: TCommandFunction;
   i: Integer;
-  ValuesAsArray: array of AnsiString = nil;
 begin
-  CommandPtr := CommandFind(Command);
+  InputArray := Default(TStringArray);
+  Result := False;
+
+  if Length(Input) = 0 then
+    Exit;
+
+  InputParse := TStringList.Create;
+  InputParse.Delimiter := ' ';
+  InputParse.DelimitedText := TrimLeft(Input);
+  SetLength(InputArray, InputParse.Count);
+
+  for i := 0 To InputParse.Count-1 Do
+    InputArray[i] := InputParse[i];
+
+  InputParse.Free;
+
+  CommandPtr := CommandFind(InputArray[0]);
 
   if CommandPtr <> nil then
   begin
     if (CMD_DEFERRED in CommandPtr.Flags) and (not DeferredInitialized) then
-    begin
-      SetLength(DeferredCommands, Length(DeferredCommands) + 1);
-      DeferredCommands[High(DeferredCommands)].Command := Command;
-      DeferredCommands[High(DeferredCommands)].Values := TStringList.Create;
-      for i := 0 to Values.Count - 1 do
-      begin
-        DeferredCommands[High(DeferredCommands)].Values.Add(Values[i]);
-      end;
-    end
+      DeferredCommands.Add(Input)
     else
     begin
       {$IFDEF SERVER}
@@ -391,20 +396,14 @@ begin
         if (Sender = 0) or (Sender > MAX_PLAYERS + 1) then
           Exit;
       {$ENDIF}
-      SetLength(ValuesAsArray, Values.Count + 1);
-      ValuesAsArray[0] := Command;
-      for i := 0 to Values.Count - 1 do
-      begin
-        ValuesAsArray[i + 1] := Values[i];
-      end;
       CommandFunction := CommandPtr.FunctionPtr;
-      CommandFunction(ValuesAsArray, Sender);
+      CommandFunction(InputArray, Sender);
     end;
     Result := True;
     Exit;
   end;
 
-  ACvar := TCvarBase.Find(Command);
+  ACvar := TCvarBase.Find(InputArray[0]);
   if ACvar <> nil then
   begin
     if CVAR_SERVER in ACvar.Flags then
@@ -421,15 +420,15 @@ begin
           Exit;
       {$ENDIF}
 
-    if Values.Count = 0 then
+    if Length(InputArray) = 1 then
     begin
       MainConsole.Console(Format('%s is "%s" (%s)',
         [ACvar.Name, ACvar.ValueAsString, ACvar.Description]),
         DEBUG_MESSAGE_COLOR{$IFDEF SERVER}, Sender{$ENDIF});
     end
-    else if Values.Count = 1 then
+    else if Length(InputArray) = 2 then
     begin
-      if not ACvar.ParseAndSetValue(Values[0]) then
+      if not ACvar.ParseAndSetValue(InputArray[1]) then
       begin
         MainConsole.Console(Format('Unable to set %s: %s',
           [ACvar.Name, ACvar.GetErrorMessage]),
@@ -443,27 +442,6 @@ begin
     end;
     Result := True;
   end;
-end;
-
-function ParseInput(Input: String; Sender: Byte = 0): Boolean; overload;
-var
-  Command: String;
-  InputParse: TStringList;
-begin
-  Result := False;
-
-  if Length(Input) = 0 then
-    Exit;
-
-  InputParse := TStringList.Create;
-  InputParse.Delimiter := ' ';
-  InputParse.DelimitedText := TrimLeft(Input);
-
-  Command := InputParse[0];
-  InputParse.Delete(0);
-
-  Result := ParseInput(Command, InputParse, Sender);
-  InputParse.Free;
 end;
 
 function LoadConfig(ConfigName: AnsiString): Boolean;
@@ -504,10 +482,8 @@ end;
 procedure ParseCommandLine();
 var
   CurrentCommand: AnsiString = '';
-  CurrentCommandValues: TStringList;
   i: Integer;
 begin
-  CurrentCommandValues := TStringList.Create;
   for i := 1 to argc do
   begin
     if (argv[i] <> '') and (argv[i][0] <> '-') then
@@ -518,13 +494,11 @@ begin
 
     if CurrentCommand <> '' then
     begin
-      ParseInput(copy(CurrentCommand, 2), CurrentCommandValues);
-      CurrentCommandValues.Clear;
+      ParseInput(copy(CurrentCommand, 2));
     end;
 
     CurrentCommand := argv[i];
   end;
-  CurrentCommandValues.Free;
 end;
 
 function CommandTarget(Target: AnsiString; Sender: Byte): TCommandTargets;
@@ -640,20 +614,19 @@ var
   i: Integer;
 begin
   DeferredInitialized := True;
-  if Length(DeferredCommands) = 0 then
+  if DeferredCommands.Count = 0 then
     Exit;
-  for i := Low(DeferredCommands) To High(DeferredCommands) do
+  for i:=0 To DeferredCommands.Count-1 do
   begin
-    ParseInput(DeferredCommands[i].Command, DeferredCommands[i].Values);
-    DeferredCommands[i].Values.Free;
+    ParseInput(DeferredCommands[i]);
   end;
-  SetLength(DeferredCommands, 0);
+  DeferredCommands.Clear;
 end;
 
 procedure CommandInit();
 begin
   Commands := TFPHashList.Create;
-  SetLength(DeferredCommands, 0);
+  DeferredCommands := TStringList.Create;
   CommandAdd('echo', CommandEcho, 'echo text', []);
   CommandAdd('exec', CommandExec, 'executes fileconfig', []);
   CommandAdd('cmdlist', CommandCmdlist, 'list of commands', []);
@@ -676,9 +649,7 @@ procedure CommandCleanup();
 var
   i: Integer;
 begin
-  for i := Low(DeferredCommands) to High(DeferredCommands) do
-    DeferredCommands[i].Values.Free;
-  SetLength(DeferredCommands, 0);
+  FreeAndNil(DeferredCommands);
   if Commands <> Nil then
     for i := 0 to Commands.Count - 1 do
       Dispose(PCommand(Commands[i]));
