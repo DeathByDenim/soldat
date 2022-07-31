@@ -512,7 +512,7 @@ begin
   begin
     if (argv[i] <> '') and (argv[i][0] <> '-') then
     begin
-      CurrentCommandValues.Add(argv[i]);
+      CurrentCommand := CurrentCommand + ' "' + argv[i] + '"';
       continue;
     end;
 
