@@ -22,7 +22,7 @@
 //
 
 const
-  COMMANDS_COLOR = $FF9966;
+  COMMANDS_COLOR        = $FF9966;
   INFO_CONSOLE_COLOR    = $EEEEEE;
   TEST_CONSOLE_COLOR    = $AAAAFF;
   PASS_CONSOLE_COLOR    = $88FF88;
@@ -240,6 +240,13 @@ procedure MyOnClockTick(Ticks: Integer);
 begin
   SLog('==========================================================', INFO);
   SLog('OnClockTick: ' + IntToStr(Ticks), INFO);
+  SLog('==========================================================', INFO);
+end;
+
+procedure MyOnIdle();
+begin
+  SLog('==========================================================', INFO);
+  SLog('OnIdle', INFO);
   SLog('==========================================================', INFO);
 end;
 
@@ -508,7 +515,6 @@ var
   VPos, VVel: TVector;
   NewPlayer: TNewPlayer;
   NewObject: TNewMapObject;
-  //Primary, Secondary: TNewWeapon;
   CheckPlayer, LastBot: TActivePlayer;
 begin
   SLog('==========================================================', INFO);
@@ -801,6 +807,7 @@ begin
   Result := 'Unknown failure';
 
   Game.OnClockTick := @MyOnClockTick;
+  Game.OnIdle := @MyOnIdle;
   Map.OnBeforeMapChange := @MyOnBeforeMapChange;
   Map.OnAfterMapChange := @MyOnAfterMapChange;
   Game.OnRequest := @MyOnRequest;

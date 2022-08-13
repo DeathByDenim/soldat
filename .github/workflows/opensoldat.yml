@@ -4,17 +4,29 @@ jobs:
   linux:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout code
+      - name: Checkout opensoldat code
         uses: actions/checkout@v2
+
+      - name: Checkout launcher code
+        uses: actions/checkout@v2
+        with:
+          repository: opensoldat/launcher
+          path: launcher
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake git fpc libprotobuf-dev protobuf-compiler libssl-dev libsdl2-dev libopenal-dev libphysfs-dev libfreetype6 patchelf
+          sudo apt-get install cmake git libprotobuf-dev protobuf-compiler libssl-dev libsdl2-dev libopenal-dev libphysfs-dev libfreetype6 patchelf
+
+      - name: Install fpc
+        run: |
+          curl -L -o fpc.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.2.2/fpc-laz_3.2.2-210709_amd64.deb/download
+          sudo apt-get install ./fpc.deb
 
       - name: Compile opensoldat
         run: |
           export BUILD_ID=${GITHUB_SHA::8}
+
           mkdir build
           cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=./opensoldat \
@@ -38,17 +50,23 @@ jobs:
           cd opensoldatserver
           ../../.github/workflows/copy-libs.sh . .
 
+      - name: Build launcher
+        run: |
+          cp -R build/opensoldat/ launcher/
+          cd launcher
+          npm ci
+          npm run make
+
       # We use .tar to preserve file permissions
       - name: Tar files
         run: |
-          tar -cvf opensoldat.tar -C build opensoldat
           tar -cvf opensoldatserver.tar -C build opensoldatserver
 
       - name: Upload game build
         uses: actions/upload-artifact@v2
         with:
           name: linux-build
-          path: opensoldat.tar
+          path: launcher/out/make/zip/linux/x64/
 
       - name: Upload server-only build
         uses: actions/upload-artifact@v2
@@ -59,15 +77,21 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - name: Checkout code
+      - name: Checkout opensoldat code
         uses: actions/checkout@v2
+
+      - name: Checkout launcher code
+        uses: actions/checkout@v2
+        with:
+          repository: opensoldat/launcher
+          path: launcher
 
       - name: Cache fpc
         id: fpc
         uses: actions/cache@v2
         with:
           path: C:\fpc
-          key: freepascal
+          key: freepascal-3.2.2
 
       - name: Cache vcpkg
         id: vcpkg-cache
@@ -79,13 +103,12 @@ jobs:
       - name: Download freepascal
         if: steps.fpc.outputs.cache-hit != 'true'
         run: |
-          curl -o C:\fpc32.exe ftp://mirror.freemirror.org/pub/fpc/dist/3.0.4/i386-win32/fpc-3.0.4.i386-win32.exe
-          curl -o C:\fpc64.exe ftp://mirror.freemirror.org/pub/fpc/dist/3.0.4/i386-win32/fpc-3.0.4.i386-win32.cross.x86_64-win64.exe
+          curl -o C:\fpc64.exe ftp://mirror.freemirror.org/pub/fpc/dist/3.2.2/i386-win32/fpc-3.2.2.win32.and.win64.exe
+
 
       - name: Install freepascal
         if: steps.fpc.outputs.cache-hit != 'true'
         run: |
-           C:\fpc32.exe /silent /nocancel /suppressmsgboxes=no
            C:\fpc64.exe /silent /nocancel /suppressmsgboxes=no
         shell: cmd
 
@@ -96,21 +119,27 @@ jobs:
       - name: Build opensoldat
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-          set PATH=%PATH%;C:\fpc\3.0.4\bin\i386-win32
+          set PATH=%PATH%;C:\fpc\3.2.2\bin\i386-win32
           set OPENSSL_ROOT_DIR=C:\vcpkg\installed\x64-windows
           set PHYSFSDIR=C:\vcpkg\installed\x64-windows
           set BUILD_ID=%GITHUB_SHA:~0,8%
           mkdir build
           cd build
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=.\opensoldat -DCROSS_WINDOWS_64=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="C:\vcpkg\scripts\buildsystems\vcpkg.cmake"  -DSDL2_BUILDING_LIBRARY=1 ..
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=..\launcher\opensoldat -DCROSS_WINDOWS_64=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="C:\vcpkg\scripts\buildsystems\vcpkg.cmake"  -DSDL2_BUILDING_LIBRARY=1 ..
           nmake
           nmake install
         shell: cmd
 
+      - name: Build launcher
+        run: |
+          cd launcher
+          npm ci
+          npm run make
+
       - uses: actions/upload-artifact@v2
         with:
           name: windows-build
-          path: build/opensoldat/
+          path: launcher/out/make/zip/win32/x64/
 
   macos:
     runs-on: macos-latest
@@ -142,7 +171,7 @@ jobs:
   continuous:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
-    needs: [windows, macos]
+    needs: [linux, windows, macos]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -152,17 +181,16 @@ jobs:
 
       - name: Zip build dirs back together
         run: |
-          zip -r windows-build.zip windows-build
           zip -r macos-build.zip macos-build
-          zip -r linux-server-build.zip linux-server-build
 
       - name: Upload release
         uses: softprops/action-gh-release@fe9a9bd3295828558c7a3c004f23f3bf77d155b2
         with:
           tag_name: continuous
           files: |
-            windows-build.zip
+            windows-build/*.zip
             macos-build.zip
-            linux-server-build.zip
+            linux-build/*.zip
+            linux-server-build/*.tar
           body: OpenSoldat 1.8 alpha dev build
           name: OpenSoldat 1.8 alpha dev build
