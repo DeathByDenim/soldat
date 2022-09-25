@@ -41,6 +41,9 @@ begin
     AdminServer.ProcessCommands();
   {$ENDIF}
 
+  // Run methods Synchronized from threads
+  CheckSynchronize;
+
   // Run every 60 seconds
   if (GetTickCount64 - LastMinuteTick) >= 60000 then
   begin
@@ -237,14 +240,9 @@ begin
           NoClientupdateTime[j] := NoClientupdateTime[j] + 1;
         if NoClientupdateTime[j] > DISCONNECTION_TIME then
         begin
-          ServerPlayerDisconnect(j, KICK_NORESPONSE);
           MainConsole.Console(Sprite[j].Player.Name + ' could not respond',
             WARNING_MESSAGE_COLOR);
-          {$IFDEF SCRIPT}
-          ScrptDispatcher.OnLeaveGame(j, False);
-          {$ENDIF}
-          Sprite[j].Kill;
-          DoBalanceBots(1, Sprite[j].Player.Team);
+          ServerPlayerDisconnect(Sprite[j].Player, KICK_NORESPONSE, True);
           Continue;
         end;
         if NoClientupdateTime[j] < 0 then
@@ -292,6 +290,11 @@ begin
             ServerThingSnapshot(j);
         end;
       end;
+
+    // Launcher connection
+    if launcher_ipc_enable.Value then
+      if not LauncherIPC.ThreadAlive and (MainTickCounter mod launcher_ipc_reconnect_rate.Value = 0) then
+         LauncherIPC.Connect(launcher_ipc_port.Value);
 
       //UDP.FlushMsg;
   end;

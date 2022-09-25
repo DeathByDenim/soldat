@@ -40,10 +40,10 @@ uses
   // anti-cheat units
   {$IFDEF ENABLE_FAE}FaeClient,{$ENDIF}
 
-  // opensoldat units
+  // OpenSoldat units
   Sprites, Anims, PolyMap, Net, LogFile, Sound, GetText,
   NetworkClientConnection, GameMenus, Demo, Console,
-  Weapons, Constants, Game, GameRendering;
+  Weapons, Constants, Game, GameRendering, ClientLauncherIPC;
 
 procedure JoinServer;
 procedure StartGame;
@@ -190,13 +190,13 @@ var
   font_weaponmenusize: TIntegerCvar;
   font_killconsolenamespace: TIntegerCvar;
 
-  // Matchmaking cvars
-  mm_ranked: TBooleanCvar;
+  launcher_ipc_enable: TBooleanCvar;
+  launcher_ipc_port: TIntegerCvar;
+  launcher_ipc_reconnect_rate: TIntegerCvar;
 
   sv_respawntime: TIntegerCvar; // TODO: Remove
   sv_inf_redaward: TIntegerCvar; // TODO: Remove
   net_contype: TIntegerCvar; // TODO: Remove
-  net_compression: TBooleanCvar; // TODO: Remove
   net_allowdownload: TBooleanCvar;
 
   // syncable cvars
@@ -215,7 +215,7 @@ var
   sv_realisticmode: TBooleanCvar;
   sv_advancemode: TBooleanCvar;
   sv_advancemode_amount: TIntegerCvar;
-  sv_minimap: TBooleanCvar;
+  sv_minimap_locations: TBooleanCvar;
   sv_advancedspectator: TBooleanCvar;
   sv_radio: TBooleanCvar;
   sv_info: TStringCvar;
@@ -247,6 +247,7 @@ var
 
   // Network
   UDP: TClientNetwork;
+  LauncherIPC: TClientLauncherIPC;
 
   // Consoles
   MainConsole: TConsole;
@@ -579,6 +580,8 @@ var
   i: Integer;
   s: String;
 begin
+  Randomize;
+
   DefaultFormatSettings.DecimalSeparator := '.';
   DefaultFormatSettings.DateSeparator := '-';
 
@@ -672,6 +675,11 @@ begin
 
   // NOTE: Code depending on CVars should be run after this line if possible.
   CvarsInitialized := True;
+
+  if launcher_ipc_enable.Value then begin
+    LauncherIPC := TClientLauncherIPC.Create;
+    LauncherIPC.Connect(launcher_ipc_port.Value);
+  end;
 
   NewLogFiles;
 
@@ -974,6 +982,11 @@ begin
   AddLineToLogFile(GameLog, 'PhysFS closing.', ConsoleLogFileName);
 
   PhysFS_deinit();
+
+  if launcher_ipc_enable.Value then begin
+    AddLineToLogFile(GameLog, 'Launcher connection closing.', ConsoleLogFileName);
+    FreeAndNil(LauncherIPC);
+  end;
 
   {$IFDEF STEAM}
   AddLineToLogFile(GameLog, 'Steam API closing.', ConsoleLogFileName);

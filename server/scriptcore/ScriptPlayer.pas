@@ -469,6 +469,8 @@ end;
 
 procedure TScriptPlayer.SetFavouriteWeapon(Weapon: string);
 begin
+  if WeaponNameToNum(Weapon) = -1 then
+    Weapon := 'Hands';
   Self.FSpritePtr^.Brain.FavWeapon := WeaponNameToNum(Weapon);
 end;
 
@@ -1137,7 +1139,7 @@ end;
 
 procedure TScriptActivePlayer.ChangeTeam(NewTeam: Byte; JoinType: TJoinType);
 begin
-    if not Self.Active then
+  if not Self.Active then
     Exit;
   if NewTeam > 5 then
     raise EArgumentException.Create('Team parameter must be 0-5');
@@ -1225,11 +1227,7 @@ end;
 
 procedure TScriptActivePlayer.SetTeam(Team: Byte);
 begin
-  if not Self.Active then
-    Exit;
-  if Team > 5 then
-    raise EArgumentException.Create('Team parameter must be 0-5');
-  Self.FSpritePtr^.ChangeTeam(Team, True);
+  Self.ChangeTeam(Team, TJoinNormal);
 end;
 
 function TScriptActivePlayer.GetVelX: Single;
